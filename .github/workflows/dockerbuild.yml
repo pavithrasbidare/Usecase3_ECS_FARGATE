@@ -26,6 +26,11 @@ jobs:
         role-to-assume: arn:aws:iam::302263075199:role/OIDC-Terraform
         aws-region: us-west-2
 
+    # Log in to Amazon ECR
+    - name: Log in to Amazon ECR
+      run: |
+        aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin 302263075199.dkr.ecr.us-west-2.amazonaws.com
+
     # Create ECR repository for Patient Service if it doesn't exist
     - name: Create ECR repository for Patient Service
       run: |
