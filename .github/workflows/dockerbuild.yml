@@ -46,7 +46,7 @@ jobs:
     # Build, tag, and push Docker image for Patient Service
     - name: Build, Tag & Push Docker Image for Patient Service
       run: |
-        cd path/to/your/Patient/  # Update this path if necessary
+        cd App/Patient/
         docker build -t patient-service:latest -f Dockerfile .
         docker tag patient-service:latest 302263075199.dkr.ecr.us-west-2.amazonaws.com/patient-service:latest
         docker push 302263075199.dkr.ecr.us-west-2.amazonaws.com/patient-service:latest
@@ -54,7 +54,7 @@ jobs:
     # Build, tag, and push Docker image for Appointment Service
     - name: Build, Tag & Push Docker Image for Appointment Service
       run: |
-        cd path/to/your/Appointment/  # Update this path if necessary
+        cd App/Appointment/
         docker build -t appointment-service:latest -f Dockerfile .
         docker tag appointment-service:latest 302263075199.dkr.ecr.us-west-2.amazonaws.com/appointment-service:latest
         docker push 302263075199.dkr.ecr.us-west-2.amazonaws.com/appointment-service:latest
