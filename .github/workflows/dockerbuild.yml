@@ -24,7 +24,7 @@ jobs:
       uses: aws-actions/configure-aws-credentials@v2
       with:
         role-to-assume: arn:aws:iam::302263075199:role/OIDC-Terraform
-        aws-region: YOUR_AWS_REGION
+        aws-region: us-west-2  # Updated to your desired AWS region
 
     # Build, tag, and push Docker image for Patient Service
     - name: Build, Tag & Push Docker Image for Patient Service
