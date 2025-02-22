@@ -23,7 +23,7 @@ jobs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v2
       with:
-        role-to-assume: arn:aws:iam::YOUR_AWS_ACCOUNT_ID:role/YOUR_ROLE_NAME
+        role-to-assume: arn:aws:iam::302263075199:role/OIDC-Terraform
         aws-region: YOUR_AWS_REGION
 
     # Build, tag, and push Docker image for Patient Service
