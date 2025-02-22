@@ -1,5 +1,5 @@
 module "vpc" {
-  source = "../modules/vpc"
+  source = "../Modules/vpc"
 
   vpc_cidr           = var.vpc_cidr
   vpc_name           = var.vpc_name
@@ -9,14 +9,14 @@ module "vpc" {
 }
 
 module "iam" {
-  source = "../modules/iam"
+  source = "../Modules/iam"
 
   ecs_task_execution_role_name = var.ecs_task_execution_role_name
   ecs_service_role_name        = var.ecs_service_role_name
 }
 
 module "ecs" {
-  source = "../modules/ecs"
+  source = "../Modules/ecs"
 
   region                     = var.region
   cluster_name               = var.cluster_name
