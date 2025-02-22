@@ -31,7 +31,7 @@ module "ecs" {
   appointment_service_name   = var.appointment_service_name
   patient_service_name       = var.patient_service_name
   subnets                    = module.vpc.public_subnet_ids
-  security_groups            = var.security_groups
+  security_groups            = module.alb.alb_sg
   appointment_tg_arn         = module.alb.ecs_tg_arn
   patient_tg_arn             = module.alb.ecs_tg_arn
 }
