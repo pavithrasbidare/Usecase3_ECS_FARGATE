@@ -88,3 +88,9 @@ variable "patient_service_name" {
   type        = string
 }
 
+variable "log_group_name" {
+  description = "CloudWatch Log Group Name"
+  type        = string
+  default     = "ecs-logs"
+}
+
