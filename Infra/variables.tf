@@ -88,8 +88,3 @@ variable "patient_service_name" {
   type        = string
 }
 
-variable "security_groups" {
-  description = "Security groups for the ECS service"
-  type        = list(string)
-}
-
