@@ -1,5 +1,5 @@
 module "vpc" {
-  source            = "../../Modules/VPC"
+  source            = "../Modules/VPC"
   vpc_cidr         = var.vpc_cidr
   public_subnets   = var.public_subnets
   private_subnets  = var.private_subnets
@@ -7,16 +7,16 @@ module "vpc" {
 }
 
 module "iam" {
-  source = "../../Modules/IAM"
+  source = "../Modules/IAM"
 }
 
 module "ecr" {
-  source    = "../../Modules/ECR"
+  source    = "../Modules/ECR"
   repo_name = var.repo_name
 }
 
 module "ecs" {
-  source          = "../../Modules/ECS"
+  source          = "../Modules/ECS"
   cluster_name    = var.cluster_name
   task_name       = var.task_name
   image_url       = var.image_url
@@ -37,13 +37,13 @@ module "ecs" {
 }
 
 module "alb" {
-  source      = "../../Modules/ALB"
+  source      = "../Modules/ALB"
   vpc_id      = module.vpc.vpc_id
   subnets     = module.vpc.public_subnets
   domain_name = var.domain_name
 }
 
 module "monitoring" {
-  source         = "../../Modules/Cloudwatch"
+  source         = "../Modules/Cloudwatch"
   log_group_name = var.log_group_name
 }
