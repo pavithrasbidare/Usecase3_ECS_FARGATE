@@ -48,7 +48,7 @@ module "monitoring" {
   log_group_name = var.log_group_name
 }
 
-output "ecs_cluster_id" {
+/*output "ecs_cluster_id" {
   value = module.ecs.ecs_cluster_id
 }
 
@@ -66,4 +66,4 @@ output "appointment_service_id" {
 
 output "patient_service_id" {
   value = module.ecs.patient_service_id
-}
+}*/
