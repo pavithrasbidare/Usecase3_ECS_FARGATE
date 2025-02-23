@@ -11,8 +11,7 @@ module "iam" {
 }
 
 module "ecr" {
-  source    = "../Modules/ECR"
-  repo_name = var.repo_name
+  source = "../Modules/ECR"
 }
 
 module "ecs" {
