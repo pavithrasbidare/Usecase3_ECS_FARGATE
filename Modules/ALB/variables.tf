@@ -11,7 +11,7 @@ variable "subnets" {
 variable "alb_name" {
   description = "The name of the Application Load Balancer"
   type        = string
-  default  = "ecs_alb"
+  default  = "my-app-alb"
 }
 
 variable "domain_name" {
@@ -22,5 +22,5 @@ variable "domain_name" {
 variable "alb_security_group_name" {
   description = "Name of the security group for ALB"
   type        = string
-  default     = "alb-sg"
+  default     = "app-alb-sg"
 }
