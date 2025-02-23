@@ -1,9 +1,11 @@
-variable "ecs_task_execution_role_name" {
-  description = "Name of the ECS task execution role"
+variable "ecs_task_role_name" {
+  description = "Name of the IAM role for ECS task execution"
   type        = string
+  default     = "ecsTaskExecutionRole"
 }
 
-variable "ecs_service_role_name" {
-  description = "Name of the ECS service role"
+variable "execution_role" {
+  description = "IAM Role ARN for ECS Execution"
   type        = string
+  default     = "ecslogsrole"
 }
