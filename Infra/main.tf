@@ -7,6 +7,13 @@ module "vpc" {
   availability_zones = var.availability_zones
 }
 
+module "alb" {
+  source      = "../Modules/ALB"
+  vpc_id      = module.vpc.vpc_id
+  subnets     = module.vpc.public_subnets
+  domain_name = var.domain_name
+}
+
 module "iam" {
   source = "../Modules/IAM"
   ecs_task_execution_role_name = var.ecs_task_execution_role_name
@@ -38,12 +45,6 @@ module "ecs" {
   patient_tg_arn             = module.alb.ecs_tg_arn
 }
 
-module "alb" {
-  source      = "../Modules/ALB"
-  vpc_id      = module.vpc.vpc_id
-  subnets     = module.vpc.public_subnets
-  domain_name = var.domain_name
-}
 
 module "monitoring" {
   source         = "../Modules/Cloudwatch"
