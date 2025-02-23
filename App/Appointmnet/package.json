@@ -4,7 +4,7 @@
     "description": "A microservice for managing appointments",
     "main": "appointment-service.js",
     "scripts": {
-      "start": "node appointment-service.js"
+      "start": "node appintment-service.js"
     },
     "dependencies": {
       "express": "^4.18.2"
