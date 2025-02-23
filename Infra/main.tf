@@ -8,6 +8,8 @@ module "vpc" {
 
 module "iam" {
   source = "../Modules/IAM"
+  ecs_service_role_name        = var.ecs_service_role_name
+  ecs_task_execution_role_name = var.ecs_task_execution_role_name
 }
 
 module "ecr" {
