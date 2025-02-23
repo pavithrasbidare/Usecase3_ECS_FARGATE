@@ -1,14 +1,9 @@
-output "ecs_cluster_id" {
-  description = "ECS cluster ID"
+output "task_definition_arn" {
+  description = "The ARN of the ECS task definition"
+  value       = aws_ecs_task_definition.appointment_service.arn
+}
+
+output "cluster_id" {
+  description = "The ID of the ECS cluster"
   value       = aws_ecs_cluster.main.id
-}
-
-output "ecs_service_appointment" {
-  description = "ECS service name for appointment service"
-  value       = aws_ecs_service.appointment_service.name
-}
-
-output "ecs_service_patient" {
-  description = "ECS service name for patient service"
-  value       = aws_ecs_service.patient_service.name
 }
