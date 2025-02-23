@@ -1,7 +1,1 @@
-output "patient_service_repository_url" {
-  value = aws_ecr_repository.patient_service.repository_url
-}
-
-output "appointment_service_repository_url" {
-  value = aws_ecr_repository.appointment_service.repository_url
-}
+output "repository_url" { value = aws_ecr_repository.app_repo.repository_url }
