@@ -12,13 +12,12 @@ resource "aws_cloudwatch_log_group" "ecs_logs" {
   retention_in_days = 30  # Adjust as needed
 }
 
-
 resource "aws_ecs_task_definition" "appointment_service" {
   family                   = var.task_name
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   execution_role_arn       = var.execution_role
-  cpu                      = var.task_cpu
+  cpu                      = var.task_cpu  # Ensure this value is sufficient
   memory                   = var.task_memory
 
   container_definitions    = jsonencode([
@@ -26,7 +25,7 @@ resource "aws_ecs_task_definition" "appointment_service" {
       name  = var.appointment_container_name
       image = var.image_url
       memory = 512
-      cpu    = 256
+      cpu    = 256  # Adjusted value
       essential = true
       portMappings = [
         {
@@ -48,23 +47,22 @@ resource "aws_ecs_task_definition" "appointment_service" {
       name  = "xray-daemon"
       image = "amazon/aws-xray-daemon"
       essential = true
-      cpu    = 50
+      cpu    = 50  # Adjusted value
       memory = 128
       environment = [
-  {
-    name  = "AWS_XRAY_TRACING_NAME"
-    value = "appointment-service-trace"
-  },
-  {
-    name  = "AWS_XRAY_DAEMON_ADDRESS"
-    value = "xray.us-west-2.amazonaws.com:2000"
-  },
-  {
-    name  = "AWS_XRAY_DAEMON_DISABLE_METADATA"
-    value = "true"
-  }
-]
-
+        {
+          name  = "AWS_XRAY_TRACING_NAME"
+          value = "appointment-service-trace"
+        },
+        {
+          name  = "AWS_XRAY_DAEMON_ADDRESS"
+          value = "xray.us-west-2.amazonaws.com:2000"
+        },
+        {
+          name  = "AWS_XRAY_DAEMON_DISABLE_METADATA"
+          value = "true"
+        }
+      ]
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -77,14 +75,12 @@ resource "aws_ecs_task_definition" "appointment_service" {
   ])
 }
 
-
-
 resource "aws_ecs_task_definition" "patient_service" {
   family                   = var.task_name
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
   execution_role_arn       = var.execution_role
-  cpu                      = var.task_cpu
+  cpu                      = var.task_cpu  # Ensure this value is sufficient
   memory                   = var.task_memory
 
   container_definitions    = jsonencode([
@@ -92,7 +88,7 @@ resource "aws_ecs_task_definition" "patient_service" {
       name  = var.patient_container_name
       image = var.image_url_patient
       memory = 512
-      cpu    = 256
+      cpu    = 256  # Adjusted value
       essential = true
       portMappings = [
         {
@@ -114,23 +110,22 @@ resource "aws_ecs_task_definition" "patient_service" {
       name  = "xray-daemon"
       image = "amazon/aws-xray-daemon"
       essential = true
-      cpu    = 50
+      cpu    = 50  # Adjusted value
       memory = 128
       environment = [
-  {
-    name  = "AWS_XRAY_TRACING_NAME"
-    value = "appointment-service-trace"
-  },
-  {
-    name  = "AWS_XRAY_DAEMON_ADDRESS"
-    value = "xray.us-west-2.amazonaws.com:2000"
-  },
-  {
-    name  = "AWS_XRAY_DAEMON_DISABLE_METADATA"
-    value = "true"
-  }
-]
-
+        {
+          name  = "AWS_XRAY_TRACING_NAME"
+          value = "patient-service-trace"
+        },
+        {
+          name  = "AWS_XRAY_DAEMON_ADDRESS"
+          value = "xray.us-west-2.amazonaws.com:2000"
+        },
+        {
+          name  = "AWS_XRAY_DAEMON_DISABLE_METADATA"
+          value = "true"
+        }
+      ]
       logConfiguration = {
         logDriver = "awslogs"
         options = {
@@ -142,8 +137,6 @@ resource "aws_ecs_task_definition" "patient_service" {
     }
   ])
 }
-
-
 
 # ECS Service for Appointment Service
 resource "aws_ecs_service" "appointment_service" {
