@@ -49,21 +49,21 @@ module "monitoring" {
 }
 
 output "ecs_cluster_id" {
-  value = aws_ecs_cluster.main.id
+  value = module.ecs.ecs_cluster_id
 }
 
 output "appointment_service_task_definition_arn" {
-  value = aws_ecs_task_definition.appointment_service.arn
+  value = module.ecs.appointment_service_task_definition_arn
 }
 
 output "patient_service_task_definition_arn" {
-  value = aws_ecs_task_definition.patient_service.arn
+  value = module.ecs.patient_service_task_definition_arn
 }
 
 output "appointment_service_id" {
-  value = aws_ecs_service.appointment_service.id
+  value = module.ecs.appointment_service_id
 }
 
 output "patient_service_id" {
-  value = aws_ecs_service.patient_service.id
+  value = module.ecs.patient_service_id
 }
