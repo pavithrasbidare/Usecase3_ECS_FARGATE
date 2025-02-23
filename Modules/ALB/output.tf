@@ -1,17 +1,16 @@
-output "dns_name" {
-  value = aws_lb.ecs_alb.dns_name
+output "alb_dns_name" {
+  value = aws_lb.app_alb.dns_name
 }
 
-output "target_group_arn" {
-  value = aws_lb_target_group.ecs_tg.arn
+output "sg_id" {
+  description = "List of security group IDs for ALB"
+  value       = [aws_security_group.app_alb_sg.id]  # Ensure it's a list
 }
 
-output "alb_sg" {
-  description = "Security group for the ALB"
-  value       = aws_security_group.alb_sg.id
+output "appointment_tg_arn" {
+  value = aws_lb_target_group.appointment_tg.arn
 }
 
-output "ecs_tg_arn" {
-  description = "Target group ARN for ECS"
-  value       = aws_lb_target_group.this.arn
+output "patient_tg_arn" {
+  value = aws_lb_target_group.patient_tg.arn
 }
