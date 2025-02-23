@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 3001
 
 # Start the application
-CMD ["node", "appointmentService.js"]
+CMD ["node", "appintment-service.js"]
