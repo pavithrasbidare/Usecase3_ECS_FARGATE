@@ -1,95 +1,101 @@
-variable "region" {
-  description = "AWS region"
-  type        = string
-}
-
 variable "vpc_cidr" {
   description = "CIDR block for the VPC"
   type        = string
-}
-
-variable "vpc_name" {
-  description = "Name of the VPC"
-  type        = string
+  default     = "10.0.0.0/16"
 }
 
 variable "public_subnets" {
-  description = "List of CIDR blocks for public subnets"
+  description = "Public subnet CIDR blocks"
   type        = list(string)
+  default     = ["10.0.1.0/24", "10.0.2.0/24"]
 }
 
 variable "private_subnets" {
-  description = "List of CIDR blocks for private subnets"
+  description = "Private subnet CIDR blocks"
   type        = list(string)
+  default     = ["10.0.3.0/24", "10.0.4.0/24"]
 }
 
 variable "availability_zones" {
-  description = "List of availability zones"
+  description = "AWS availability zones"
   type        = list(string)
+  default     = ["us-west-2a", "us-west-2b"]
 }
 
-variable "ecs_task_execution_role_name" {
-  description = "Name of the ECS task execution role"
+variable "repo_name" {
+  description = "Name of the ECR repository"
   type        = string
-}
-
-variable "ecs_service_role_name" {
-  description = "Name of the ECS service role"
-  type        = string
+  default     = "my-app-repo"
 }
 
 variable "cluster_name" {
-  description = "ECS cluster name"
+  description = "ECS Cluster Name"
   type        = string
+  default     = "my-ecs-cluster"
 }
 
-variable "task_family" {
-  description = "ECS task family"
+variable "task_name" {
+  description = "ECS Task Name"
   type        = string
-}
-
-variable "task_cpu" {
-  description = "Task CPU units"
-  type        = string
-}
-
-variable "task_memory" {
-  description = "Task memory in MiB"
-  type        = string
-}
-
-variable "appointment_container_name" {
-  description = "Container name for appointment service"
-  type        = string
+  default     = "my-task"
 }
 
 variable "image_url" {
-  description = "Docker image URL for appointment service"
+  description = "Container Image URL"
   type        = string
+  default     = "123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app-repo:latest"
+}
+
+variable "task_memory" {
+  description = "Memory for the container"
+  type        = number
+  default     = 512
+}
+
+variable "task_cpu" {
+  description = "CPU for the container"
+  type        = number
+  default     = 256
 }
 
 variable "patient_container_name" {
-  description = "Container name for patient service"
+  description = "The name of the container"
   type        = string
-}
-
-variable "image_url_patient" {
-  description = "Docker image URL for patient service"
-  type        = string
-}
-
-variable "appointment_service_name" {
-  description = "ECS service name for appointment service"
-  type        = string
+  default   = "patient-container"
 }
 
 variable "patient_service_name" {
-  description = "ECS service name for patient service"
+  description = "The name of the ECS service"
   type        = string
+  default   = "patient-service"
 }
+
+variable "appointment_service_name" {
+  description = "The name of the ECS service"
+  type        = string
+  default   = "appointment-service"
+}
+
+variable "appointment_container_name" {
+  description = "The name of the container"
+  type        = string
+  default   = "appointment-container"
+}
+
 
 variable "log_group_name" {
   description = "CloudWatch Log Group Name"
   type        = string
-  default     = "ecs-logs"
+  default     = "ecs-application-logs"
+}
+
+variable "image_url_patient" {
+  description = "Container Image URL"
+  type        = string
+  default     = "123456789012.dkr.ecr.us-east-1.amazonaws.com/my-app-repo:latest"
+}
+
+variable "domain_name" {
+  description = "The domain name for the ACM certificate"
+  type        = string
 }
