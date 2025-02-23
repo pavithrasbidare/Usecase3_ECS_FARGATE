@@ -8,10 +8,10 @@ module "vpc" {
 }
 
 module "alb" {
-  source      = "../Modules/ALB"
-  vpc_id      = module.vpc.vpc_id
-  subnets     = module.vpc.public_subnets
-  domain_name = var.domain_name
+  source        = "../Modules/ALB"
+  vpc_id        = module.vpc.vpc_id
+  public_subnets = module.vpc.public_subnets
+  domain_name   = var.domain_name
 }
 
 module "iam" {
@@ -39,12 +39,11 @@ module "ecs" {
   image_url_patient          = var.image_url_patient
   appointment_service_name   = var.appointment_service_name
   patient_service_name       = var.patient_service_name
-  subnets                    = module.vpc.public_subnet_ids
+  subnets                    = module.vpc.public_subnets
   security_groups            = module.alb.alb_sg
   appointment_tg_arn         = module.alb.ecs_tg_arn
   patient_tg_arn             = module.alb.ecs_tg_arn
 }
-
 
 module "monitoring" {
   source         = "../Modules/Cloudwatch"
