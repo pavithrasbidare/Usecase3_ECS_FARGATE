@@ -99,3 +99,13 @@ variable "domain_name" {
   description = "The domain name for the ACM certificate"
   type        = string
 }
+
+variable "region" {
+  description = "AWS region"
+  type        = string
+}
+
+variable "task_family" {
+  description = "ECS task family"
+  type        = string
+}
