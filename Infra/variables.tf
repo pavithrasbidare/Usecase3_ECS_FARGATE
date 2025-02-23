@@ -93,12 +93,3 @@ variable "security_groups" {
   type        = list(string)
 }
 
-variable "appointment_tg_arn" {
-  description = "Target group ARN for appointment service"
-  type        = string
-}
-
-variable "patient_tg_arn" {
-  description = "Target group ARN for patient service"
-  type        = string
-}
