@@ -1,6 +1,5 @@
 module "vpc" {
-  source = "../Modules/vpc"
-
+  source = "../Modules/VPC"
   vpc_cidr           = var.vpc_cidr
   vpc_name           = var.vpc_name
   public_subnets     = var.public_subnets
@@ -9,15 +8,18 @@ module "vpc" {
 }
 
 module "iam" {
-  source = "../Modules/iam"
-
+  source = "../Modules/IAM"
   ecs_task_execution_role_name = var.ecs_task_execution_role_name
   ecs_service_role_name        = var.ecs_service_role_name
 }
 
-module "ecs" {
-  source = "../Modules/ecs"
+module "ecr" {
+  source    = "../Modules/ECR"
+  repo_name = var.repo_name
+}
 
+module "ecs" {
+  source = "../Modules/ECS"
   region                     = var.region
   cluster_name               = var.cluster_name
   task_family                = var.task_family
@@ -37,13 +39,13 @@ module "ecs" {
 }
 
 module "alb" {
-  source      = "../../Modules/ALB"
+  source      = "../Modules/ALB"
   vpc_id      = module.vpc.vpc_id
   subnets     = module.vpc.public_subnets
   domain_name = var.domain_name
 }
 
 module "monitoring" {
-  source         = "../../Modules/Cloudwatch"
+  source         = "../Modules/Cloudwatch"
   log_group_name = var.log_group_name
 }
