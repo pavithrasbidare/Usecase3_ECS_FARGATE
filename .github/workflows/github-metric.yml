@@ -45,17 +45,17 @@ jobs:
             
             # Fetching commit count
             echo "🔄 Fetching commit count..."
-            COMMIT_COUNT=$(gh api repos/$OWNER/$REPO/commits --paginate -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
+            COMMIT_COUNT=$(gh api /repos/$OWNER/$REPO/commits --paginate -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
             echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT" >> metrics/$REPO-report.md
             
             # Fetching open issue count
             echo "📂 Fetching open issue count..."
-            ISSUE_COUNT=$(gh api repos/$OWNER/$REPO/issues -f state=open -f per_page=100 -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
+            ISSUE_COUNT=$(gh api /repos/$OWNER/$REPO/issues -f state=open -f per_page=100 -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
             echo "- Open Issues: $ISSUE_COUNT" >> metrics/$REPO-report.md
             
             # Fetching open pull request count
             echo "🔃 Fetching open pull request count..."
-            PR_COUNT=$(gh api repos/$OWNER/$REPO/pulls -f state=open -f per_page=100 -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
+            PR_COUNT=$(gh api /repos/$OWNER/$REPO/pulls -f state=open -f per_page=100 -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
             echo "- Open Pull Requests: $PR_COUNT" >> metrics/$REPO-report.md
             echo "" >> metrics/$REPO-report.md
           done
