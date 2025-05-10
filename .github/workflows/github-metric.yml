@@ -1,0 +1,47 @@
+name: GitHub Metrics
+
+on:
+  workflow_dispatch:
+
+jobs:
+  metrics:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up GitHub CLI
+        run: sudo apt-get install -y gh jq
+
+      - name: Generate GitHub metrics report
+        env:
+          GH_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+        run: |
+          REPO="your-org/am"  # replace with your actual org/repo
+          SINCE=$(date -u -d '30 days ago' +"%Y-%m-%dT%H:%M:%SZ")
+
+          echo "📊 GitHub Metrics for $REPO" > metrics/report.md
+          echo "" >> metrics/report.md
+
+          echo "🔄 Fetching commit count..."
+          COMMIT_COUNT=$(gh api repos/$REPO/commits --paginate -q "map(select(.commit.author.date > \"$SINCE\")) | length")
+          echo "- Commits in last 30 days: $COMMIT_COUNT" >> metrics/report.md
+
+          echo "📂 Fetching issue count..."
+          ISSUE_COUNT=$(gh api repos/$REPO/issues -f state=open -q "length")
+          echo "- Open Issues: $ISSUE_COUNT" >> metrics/report.md
+
+          echo "🔃 Fetching pull request count..."
+          PR_COUNT=$(gh api repos/$REPO/pulls -f state=open -q "length")
+          echo "- Open Pull Requests: $PR_COUNT" >> metrics/report.md
+
+          cat metrics/report.md
+
+      - name: Commit and push metrics report
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add metrics/report.md
+          git commit -m "Update GitHub metrics report" || echo "No changes to commit"
+          git push
