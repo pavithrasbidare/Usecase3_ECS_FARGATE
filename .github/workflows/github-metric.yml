@@ -4,12 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       target_repo:
-        description: 'Repository name (e.g., myrepo)'
+        description: 'Repository name (e.g., Usecase3_ECS_FARGATE)'
         required: true
 
 permissions:
   contents: read  # To read the contents of the repository
-  issues: read  # To read issues
+  issues: read    # To read issues
   pull-requests: read  # To read pull requests
   actions: read  # To use GitHub Actions (for dispatching workflows)
 
@@ -26,29 +26,23 @@ jobs:
 
       - name: Generate GitHub metrics report
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Default token provided by GitHub Actions
         run: |
           REPO="${{ github.event.inputs.target_repo }}"  # User only inputs repo name like 'Usecase3_ECS_FARGATE'
           OWNER="${{ github.repository_owner }}"  # Automatically fetches the repo owner
           SINCE=$(date -u -d '30 days ago' +"%Y-%m-%dT%H:%M:%SZ")
-
           mkdir -p metrics
-
           echo "📊 GitHub Metrics for $REPO" > metrics/report.md
           echo "" >> metrics/report.md
-
           echo "🔄 Fetching commit count..."
           COMMIT_COUNT=$(gh api repos/$OWNER/$REPO/commits --paginate -q "length")
           echo "- Commits in last 30 days: $COMMIT_COUNT" >> metrics/report.md
-
           echo "📂 Fetching issue count..."
           ISSUE_COUNT=$(gh api repos/$OWNER/$REPO/issues -f state=open -q "length")
           echo "- Open Issues: $ISSUE_COUNT" >> metrics/report.md
-
           echo "🔃 Fetching pull request count..."
           PR_COUNT=$(gh api repos/$OWNER/$REPO/pulls -f state=open -q "length")
           echo "- Open Pull Requests: $PR_COUNT" >> metrics/report.md
-
           echo ""
           echo "✅ Report generated:"
           cat metrics/report.md
