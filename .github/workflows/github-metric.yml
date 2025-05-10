@@ -7,6 +7,12 @@ on:
         description: 'Repository name (e.g., myrepo)'
         required: true
 
+permissions:
+  contents: read  # To read the contents of the repository
+  issues: read  # To read issues
+  pull-requests: read  # To read pull requests
+  actions: read  # To use GitHub Actions (for dispatching workflows)
+
 jobs:
   metrics:
     runs-on: ubuntu-latest
