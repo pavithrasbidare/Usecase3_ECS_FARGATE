@@ -12,15 +12,26 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Checkout the repo
       - name: Checkout repo
         uses: actions/checkout@v3
 
+      # Install GitHub CLI and jq
       - name: Install GitHub CLI and jq
-        run: sudo apt-get install -y gh jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+          curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | \
+            sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg
+          echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | \
+            sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null
+          sudo apt update
+          sudo apt install gh -y
 
+      # Generate GitHub metrics report
       - name: Generate GitHub metrics report
         env:
-          GH_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}  # Use the built-in GitHub token for authentication
         run: |
           REPO="${{ github.event.inputs.target_repo }}"
           SINCE=$(date -u -d '30 days ago' +"%Y-%m-%dT%H:%M:%SZ")
@@ -31,7 +42,7 @@ jobs:
           echo "" >> metrics/report.md
 
           echo "🔄 Fetching commit count..."
-          COMMIT_COUNT=$(gh api repos/$REPO/commits --paginate -q "map(select(.commit.author.date > \"$SINCE\")) | length")
+          COMMIT_COUNT=$(gh api repos/$REPO/commits --paginate -q "length")
           echo "- Commits in last 30 days: $COMMIT_COUNT" >> metrics/report.md
 
           echo "📂 Fetching issue count..."
@@ -46,10 +57,14 @@ jobs:
           echo "✅ Report generated:"
           cat metrics/report.md
 
+      # Commit and push metrics report to the repo
       - name: Commit and push metrics report
+        env:
+          GH_TOKEN: ${{ github.token }}  # Use the built-in GitHub token for authentication
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
+          git remote set-url origin https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}
           git add metrics/report.md
           git commit -m "Update GitHub metrics report" || echo "No changes to commit"
           git push
