@@ -38,14 +38,17 @@ jobs:
           NUMBER_OF_DAYS="${{ github.event.inputs.number_of_days }}"
           OWNER="${{ github.repository_owner }}"  # Automatically fetches the repo owner
           mkdir -p metrics
-          for REPO in $REPOS; do
+          
+          # Handle multiple repositories (split the string into an array)
+          IFS=' ' read -r -a REPOS_ARRAY <<< "$REPOS"
+          for REPO in "${REPOS_ARRAY[@]}"; do
             SINCE=$(date -u -d "$NUMBER_OF_DAYS days ago" +"%Y-%m-%dT%H:%M:%SZ")
             echo "📊 GitHub Metrics for $REPO" > metrics/$REPO-report.md
             echo "" >> metrics/$REPO-report.md
             
             # Fetching commit count
             echo "🔄 Fetching commit count..."
-            COMMIT_COUNT=$(gh api /repos/$OWNER/$REPO/commits --paginate -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
+            COMMIT_COUNT=$(gh api /repos/$OWNER/$REPO/commits -f since="$SINCE" -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
             echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT" >> metrics/$REPO-report.md
             
             # Fetching open issue count
