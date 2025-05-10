@@ -42,14 +42,20 @@ jobs:
             SINCE=$(date -u -d "$NUMBER_OF_DAYS days ago" +"%Y-%m-%dT%H:%M:%SZ")
             echo "📊 GitHub Metrics for $REPO" > metrics/$REPO-report.md
             echo "" >> metrics/$REPO-report.md
+            
+            # Fetching commit count
             echo "🔄 Fetching commit count..."
-            COMMIT_COUNT=$(gh api repos/$OWNER/$REPO/commits --paginate -q "length")
+            COMMIT_COUNT=$(gh api repos/$OWNER/$REPO/commits --paginate -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
             echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT" >> metrics/$REPO-report.md
+            
+            # Fetching issue count
             echo "📂 Fetching issue count..."
-            ISSUE_COUNT=$(gh api repos/$OWNER/$REPO/issues -f state=open -q "length")
+            ISSUE_COUNT=$(gh api repos/$OWNER/$REPO/issues -f state=open -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
             echo "- Open Issues: $ISSUE_COUNT" >> metrics/$REPO-report.md
+            
+            # Fetching pull request count
             echo "🔃 Fetching pull request count..."
-            PR_COUNT=$(gh api repos/$OWNER/$REPO/pulls -f state=open -q "length")
+            PR_COUNT=$(gh api repos/$OWNER/$REPO/pulls -f state=open -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
             echo "- Open Pull Requests: $PR_COUNT" >> metrics/$REPO-report.md
             echo "" >> metrics/$REPO-report.md
           done
