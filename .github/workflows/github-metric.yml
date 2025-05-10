@@ -1,15 +1,19 @@
-name: GitHub Metrics
+name: GitHub Metrics for Specific Repos
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Allows manual triggering
     inputs:
-      target_repo:
-        description: 'Repository name (e.g., Usecase3_ECS_FARGATE)'
+      repos:  # List of repositories to fetch metrics for (e.g., 'repo1 repo2 repo3')
+        description: 'List of repositories to fetch metrics for (e.g., repo1 repo2 repo3)'
         required: true
+      number_of_days:
+        description: 'Number of days to fetch data for (e.g., 30)'
+        required: true
+        default: '30'
 
 permissions:
-  contents: read  # To read the contents of the repository
-  issues: read    # To read issues
+  contents: read    # To read the contents of the repository
+  issues: read      # To read issues
   pull-requests: read  # To read pull requests
   actions: read  # To use GitHub Actions (for dispatching workflows)
 
@@ -24,33 +28,36 @@ jobs:
       - name: Install GitHub CLI and jq
         run: sudo apt-get install -y gh jq
 
-      - name: Generate GitHub metrics report
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Default token provided by GitHub Actions
+      - name: Authenticate GitHub CLI
         run: |
-          REPO="${{ github.event.inputs.target_repo }}"  # User only inputs repo name like 'Usecase3_ECS_FARGATE'
+          gh auth login --with-token <<< "${{ secrets.PAT_TOKEN }}"
+
+      - name: Generate GitHub metrics report
+        run: |
+          REPOS="${{ github.event.inputs.repos }}"  # List of repositories from input
+          NUMBER_OF_DAYS="${{ github.event.inputs.number_of_days }}"
           OWNER="${{ github.repository_owner }}"  # Automatically fetches the repo owner
-          SINCE=$(date -u -d '30 days ago' +"%Y-%m-%dT%H:%M:%SZ")
           mkdir -p metrics
-          echo "📊 GitHub Metrics for $REPO" > metrics/report.md
-          echo "" >> metrics/report.md
-          echo "🔄 Fetching commit count..."
-          COMMIT_COUNT=$(gh api repos/$OWNER/$REPO/commits --paginate -q "length")
-          echo "- Commits in last 30 days: $COMMIT_COUNT" >> metrics/report.md
-          echo "📂 Fetching issue count..."
-          ISSUE_COUNT=$(gh api repos/$OWNER/$REPO/issues -f state=open -q "length")
-          echo "- Open Issues: $ISSUE_COUNT" >> metrics/report.md
-          echo "🔃 Fetching pull request count..."
-          PR_COUNT=$(gh api repos/$OWNER/$REPO/pulls -f state=open -q "length")
-          echo "- Open Pull Requests: $PR_COUNT" >> metrics/report.md
-          echo ""
-          echo "✅ Report generated:"
-          cat metrics/report.md
+          for REPO in $REPOS; do
+            SINCE=$(date -u -d "$NUMBER_OF_DAYS days ago" +"%Y-%m-%dT%H:%M:%SZ")
+            echo "📊 GitHub Metrics for $REPO" > metrics/$REPO-report.md
+            echo "" >> metrics/$REPO-report.md
+            echo "🔄 Fetching commit count..."
+            COMMIT_COUNT=$(gh api repos/$OWNER/$REPO/commits --paginate -q "length")
+            echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT" >> metrics/$REPO-report.md
+            echo "📂 Fetching issue count..."
+            ISSUE_COUNT=$(gh api repos/$OWNER/$REPO/issues -f state=open -q "length")
+            echo "- Open Issues: $ISSUE_COUNT" >> metrics/$REPO-report.md
+            echo "🔃 Fetching pull request count..."
+            PR_COUNT=$(gh api repos/$OWNER/$REPO/pulls -f state=open -q "length")
+            echo "- Open Pull Requests: $PR_COUNT" >> metrics/$REPO-report.md
+            echo "" >> metrics/$REPO-report.md
+          done
 
       - name: Commit and push metrics report
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
-          git add metrics/report.md
-          git commit -m "Update GitHub metrics report" || echo "No changes to commit"
+          git add metrics/*
+          git commit -m "Update GitHub metrics reports" || echo "No changes to commit"
           git push
