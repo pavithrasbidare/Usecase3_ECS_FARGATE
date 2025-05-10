@@ -2,6 +2,10 @@ name: GitHub Metrics
 
 on:
   workflow_dispatch:
+    inputs:
+      target_repo:
+        description: 'Repository (e.g., myorg/myrepo)'
+        required: true
 
 jobs:
   metrics:
@@ -11,15 +15,17 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Set up GitHub CLI
+      - name: Install GitHub CLI and jq
         run: sudo apt-get install -y gh jq
 
       - name: Generate GitHub metrics report
         env:
           GH_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
-          REPO="your-org/am"  # replace with your actual org/repo
+          REPO="${{ github.event.inputs.target_repo }}"
           SINCE=$(date -u -d '30 days ago' +"%Y-%m-%dT%H:%M:%SZ")
+
+          mkdir -p metrics
 
           echo "📊 GitHub Metrics for $REPO" > metrics/report.md
           echo "" >> metrics/report.md
@@ -36,6 +42,8 @@ jobs:
           PR_COUNT=$(gh api repos/$REPO/pulls -f state=open -q "length")
           echo "- Open Pull Requests: $PR_COUNT" >> metrics/report.md
 
+          echo ""
+          echo "✅ Report generated:"
           cat metrics/report.md
 
       - name: Commit and push metrics report
