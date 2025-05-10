@@ -46,6 +46,14 @@ jobs:
             echo "📊 GitHub Metrics for $REPO" > metrics/$REPO-report.md
             echo "" >> metrics/$REPO-report.md
             
+            # Check if the repo exists
+            echo "🔍 Checking if repository $OWNER/$REPO exists..."
+            REPO_EXISTS=$(gh api /repos/$OWNER/$REPO --silent --fail || echo "not found")
+            if [[ "$REPO_EXISTS" == "not found" ]]; then
+              echo "❌ Repository $OWNER/$REPO not found!"
+              continue
+            fi
+            
             # Fetching commit count
             echo "🔄 Fetching commit count..."
             COMMIT_COUNT=$(gh api /repos/$OWNER/$REPO/commits -f since="$SINCE" -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
