@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       target_repo:
-        description: 'Repository (e.g., myorg/myrepo)'
+        description: 'Repository name (e.g., myrepo)'
         required: true
 
 jobs:
@@ -20,11 +20,10 @@ jobs:
 
       - name: Generate GitHub metrics report
         env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # This allows the GitHub CLI to authenticate
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          REPO="${{ github.event.inputs.target_repo }}"  # 'pavithrasbidare/Usecase3_ECS_FARGATE'
-          OWNER="${{ github.repository_owner }}"  # 'pavithrasbidare'
-
+          REPO="${{ github.event.inputs.target_repo }}"  # User only inputs repo name like 'Usecase3_ECS_FARGATE'
+          OWNER="${{ github.repository_owner }}"  # Automatically fetches the repo owner
           SINCE=$(date -u -d '30 days ago' +"%Y-%m-%dT%H:%M:%SZ")
 
           mkdir -p metrics
