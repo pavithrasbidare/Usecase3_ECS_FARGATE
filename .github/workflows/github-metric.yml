@@ -40,12 +40,15 @@ jobs:
             fi
             SINCE=$(date -u -d "$NUMBER_OF_DAYS days ago" +"%Y-%m-%dT%H:%M:%SZ")
             echo "📊 GitHub Metrics for $REPO"
-            echo ""
             
             echo "🔄 Fetching commit count..."
             COMMIT_COUNT=$(curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
             "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE" | jq length)
             echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT"
+            
+            echo "📋 Fetching commit details..."
+            curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE&per_page=5" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' | jq -r '. | "- \(.author): \(.message) (\(.date))"'
             
             echo "📂 Fetching open issue count..."
             ISSUE_COUNT=$(curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
@@ -56,9 +59,4 @@ jobs:
             PR_COUNT=$(curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
             "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq length)
             echo "- Open Pull Requests: $PR_COUNT"
-            
-            echo "📋 Fetching commit details..."
-            curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-            "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE&per_page=5" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}'
-            echo ""
           done
