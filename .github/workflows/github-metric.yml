@@ -66,6 +66,8 @@ jobs:
           done
 
       - name: Commit and push metrics report
+        env:
+          GITHUB_TOKEN: ${{ secrets.PAT_TOKEN }}
         run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
