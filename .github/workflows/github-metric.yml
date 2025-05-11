@@ -25,12 +25,8 @@ jobs:
       - name: Checkout repo
         uses: actions/checkout@v3
 
-      - name: Install GitHub CLI and jq
-        run: sudo apt-get install -y gh jq
-
-      - name: Authenticate GitHub CLI
-        run: |
-          gh auth login --with-token <<< "${{ secrets.PAT_TOKEN }}"
+      - name: Install jq
+        run: sudo apt-get install -y jq
 
       - name: Generate GitHub metrics report
         run: |
@@ -48,16 +44,24 @@ jobs:
             echo "" >> metrics/$REPO-report.md
             
             echo "🔄 Fetching commit count..."
-            COMMIT_COUNT=$(gh api /repos/$OWNER/$REPO/commits --paginate -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
+            COMMIT_COUNT=$(curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE" | jq length)
             echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT" >> metrics/$REPO-report.md
             
             echo "📂 Fetching open issue count..."
-            ISSUE_COUNT=$(gh api /repos/$OWNER/$REPO/issues -f state=open -f per_page=100 -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
+            ISSUE_COUNT=$(curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq length)
             echo "- Open Issues: $ISSUE_COUNT" >> metrics/$REPO-report.md
             
             echo "🔃 Fetching open pull request count..."
-            PR_COUNT=$(gh api /repos/$OWNER/$REPO/pulls -f state=open -f per_page=100 -q "length" --header "Authorization: token ${{ secrets.PAT_TOKEN }}")
+            PR_COUNT=$(curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq length)
             echo "- Open Pull Requests: $PR_COUNT" >> metrics/$REPO-report.md
+            
+            echo "📋 Fetching commit details..."
+            curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE&per_page=5" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' > commit_details.json
+            cat commit_details.json >> metrics/$REPO-report.md
             echo "" >> metrics/$REPO-report.md
           done
 
