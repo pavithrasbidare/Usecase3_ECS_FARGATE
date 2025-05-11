@@ -10,6 +10,10 @@ on:
         description: 'Number of days to fetch data for (e.g., 30)'
         required: true
         default: '30'
+      metric:
+        description: 'Metric to display (commits, issues, prs)'
+        required: true
+        default: 'commits'
 
 permissions:
   contents: read
@@ -32,6 +36,7 @@ jobs:
         run: |
           REPOS="${{ github.event.inputs.repos }}"
           NUMBER_OF_DAYS="${{ github.event.inputs.number_of_days }}"
+          METRIC="${{ github.event.inputs.metric }}"
           OWNER="${{ github.repository_owner }}"
           for REPO in $REPOS; do
             if [ -z "$REPO" ]; then
@@ -41,33 +46,37 @@ jobs:
             SINCE=$(date -u -d "$NUMBER_OF_DAYS days ago" +"%Y-%m-%dT%H:%M:%SZ")
             echo "📊 GitHub Metrics for $REPO"
             
-            echo "🔄 Fetching commit count..."
-            COMMIT_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-            "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE" | jq length)
-            echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT"
-            
-            echo "📋 Fetching commit details..."
-            curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-            "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE&per_page=5" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' | tee commit_details.json
-            cat commit_details.json
-            
-            echo "📂 Fetching open issue count..."
-            ISSUE_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-            "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq length)
-            echo "- Open Issues: $ISSUE_COUNT"
-            
-            echo "📋 Fetching open issue details..."
-            curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-            "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' | tee issue_details.json
-            cat issue_details.json
-            
-            echo "🔃 Fetching open pull request count..."
-            PR_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-            "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq length)
-            echo "- Open Pull Requests: $PR_COUNT"
-            
-            echo "📋 Fetching open pull request details..."
-            curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-            "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' | tee pr_details.json
-            cat pr_details.json
+            if [ "$METRIC" = "commits" ]; then
+              echo "🔄 Fetching commit count..."
+              COMMIT_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+              "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE" | jq length)
+              echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT"
+              
+              echo "📋 Fetching commit details..."
+              curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+              "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE&per_page=5" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' | tee commit_details.json
+              cat commit_details.json
+            elif [ "$METRIC" = "issues" ]; then
+              echo "📂 Fetching open issue count..."
+              ISSUE_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+              "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq length)
+              echo "- Open Issues: $ISSUE_COUNT"
+              
+              echo "📋 Fetching open issue details..."
+              curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+              "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' | tee issue_details.json
+              cat issue_details.json
+            elif [ "$METRIC" = "prs" ]; then
+              echo "🔃 Fetching open pull request count..."
+              PR_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+              "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq length)
+              echo "- Open Pull Requests: $PR_COUNT"
+              
+              echo "📋 Fetching open pull request details..."
+              curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+              "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' | tee pr_details.json
+              cat pr_details.json
+            else
+              echo "Invalid metric selected. Please choose 'commits', 'issues', or 'prs'."
+            fi
           done
