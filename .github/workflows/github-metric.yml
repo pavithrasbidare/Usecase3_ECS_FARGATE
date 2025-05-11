@@ -48,8 +48,7 @@ jobs:
             
             echo "📋 Fetching commit details..."
             curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-            "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE&per_page=5" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' | tee commit_details.json | jq -r '. | "- \(.author): \(.message) (\(.date))"'
-            echo ""
+            "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE&per_page=5" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' | tee commit_details.json
             cat commit_details.json
             
             echo "📂 Fetching open issue count..."
@@ -57,8 +56,18 @@ jobs:
             "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq length)
             echo "- Open Issues: $ISSUE_COUNT"
             
+            echo "📋 Fetching open issue details..."
+            curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' | tee issue_details.json
+            cat issue_details.json
+            
             echo "🔃 Fetching open pull request count..."
             PR_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
             "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq length)
             echo "- Open Pull Requests: $PR_COUNT"
+            
+            echo "📋 Fetching open pull request details..."
+            curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' | tee pr_details.json
+            cat pr_details.json
           done
