@@ -11,9 +11,14 @@ on:
         required: true
         default: '30'
       metric:
-        description: 'Metric to display (commits, issues, prs)'
+        description: 'Metric to display'
         required: true
         default: 'commits'
+        type: choice
+        options:
+          - commits
+          - issues
+          - prs
 
 permissions:
   contents: read
