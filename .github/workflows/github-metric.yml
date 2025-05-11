@@ -42,21 +42,23 @@ jobs:
             echo "📊 GitHub Metrics for $REPO"
             
             echo "🔄 Fetching commit count..."
-            COMMIT_COUNT=$(curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            COMMIT_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
             "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE" | jq length)
             echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT"
             
             echo "📋 Fetching commit details..."
-            curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-            "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE&per_page=5" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' | jq -r '. | "- \(.author): \(.message) (\(.date))"'
+            curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE&per_page=5" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' | tee commit_details.json | jq -r '. | "- \(.author): \(.message) (\(.date))"'
+            echo ""
+            cat commit_details.json
             
             echo "📂 Fetching open issue count..."
-            ISSUE_COUNT=$(curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            ISSUE_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
             "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq length)
             echo "- Open Issues: $ISSUE_COUNT"
             
             echo "🔃 Fetching open pull request count..."
-            PR_COUNT=$(curl -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+            PR_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
             "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq length)
             echo "- Open Pull Requests: $PR_COUNT"
           done
