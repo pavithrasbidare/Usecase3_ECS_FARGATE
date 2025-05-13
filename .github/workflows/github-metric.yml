@@ -1,4 +1,4 @@
-name: GitHub Metrics for All Repos
+name: GitHub Metrics for Selected Repos
 
 on:
   workflow_dispatch:
@@ -16,6 +16,9 @@ on:
           - commits
           - issues
           - prs
+      selected_repos:
+        description: 'List of repositories to fetch metrics for (e.g., repo1 repo2 repo3)'
+        required: true
 
 permissions:
   contents: read
@@ -24,7 +27,26 @@ permissions:
   actions: read
 
 jobs:
-  fetch_and_process_repos:
+  fetch_repos:
+    runs-on: ubuntu-latest
+    outputs:
+      repos: ${{ steps.fetch_repos.outputs.repos }}
+
+    steps:
+      - name: Install jq
+        run: sudo apt-get install -y jq
+
+      - name: Fetch all repositories
+        id: fetch_repos
+        run: |
+          REPOS=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+          "https://api.github.com/user/repos?per_page=100" | jq -r '.[].name')
+          echo "::set-output name=repos::$REPOS"
+          echo "Fetched repositories: $REPOS"
+          echo "REPOS=$(echo $REPOS | tr '\n' ' ')" >> $GITHUB_ENV
+
+  select_and_generate_metrics:
+    needs: fetch_repos
     runs-on: ubuntu-latest
 
     steps:
@@ -34,20 +56,13 @@ jobs:
       - name: Install jq
         run: sudo apt-get install -y jq
 
-      - name: Fetch all repositories
-        id: fetch_repos
-        run: |
-          REPOS=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-          "https://api.github.com/user/repos?per_page=100" | jq -r '.[].name')
-          echo "Fetched repositories: $REPOS"
-          echo "REPOS=$(echo $REPOS | tr '\n' ' ')" >> $GITHUB_ENV
-
       - name: Generate GitHub metrics report
         run: |
           NUMBER_OF_DAYS="${{ github.event.inputs.number_of_days }}"
           METRIC="${{ github.event.inputs.metric }}"
           OWNER="${{ github.repository_owner }}"
-          IFS=' ' read -r -a REPO_ARRAY <<< "$REPOS"
+          SELECTED_REPOS="${{ github.event.inputs.selected_repos }}"
+          IFS=' ' read -r -a REPO_ARRAY <<< "$SELECTED_REPOS"
           for REPO in "${REPO_ARRAY[@]}"; do
             if [ -z "$REPO" ]; then
               echo "Skipping empty repository name"
