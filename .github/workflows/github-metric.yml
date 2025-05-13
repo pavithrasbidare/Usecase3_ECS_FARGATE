@@ -1,11 +1,8 @@
-name: GitHub Metrics for Specific Repos
+name: GitHub Metrics for All Repos
 
 on:
   workflow_dispatch:
     inputs:
-      repos:
-        description: 'List of repositories to fetch metrics for (e.g., repo1 repo2 repo3)'
-        required: true
       number_of_days:
         description: 'Number of days to fetch data for (e.g., 30)'
         required: true
@@ -37,9 +34,14 @@ jobs:
       - name: Install jq
         run: sudo apt-get install -y jq
 
+      - name: Fetch all repositories
+        run: |
+          REPOS=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+          "https://api.github.com/user/repos?per_page=100" | jq -r '.[].name')
+          echo "REPOS=$REPOS" >> $GITHUB_ENV
+
       - name: Generate GitHub metrics report
         run: |
-          REPOS="${{ github.event.inputs.repos }}"
           NUMBER_OF_DAYS="${{ github.event.inputs.number_of_days }}"
           METRIC="${{ github.event.inputs.metric }}"
           OWNER="${{ github.repository_owner }}"
