@@ -35,9 +35,11 @@ jobs:
         run: sudo apt-get install -y jq
 
       - name: Fetch all repositories
+        id: fetch_repos
         run: |
           REPOS=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
           "https://api.github.com/user/repos?per_page=100" | jq -r '.[].name')
+          echo "Fetched repositories: $REPOS"
           echo "REPOS=$REPOS" >> $GITHUB_ENV
 
       - name: Generate GitHub metrics report
@@ -45,7 +47,8 @@ jobs:
           NUMBER_OF_DAYS="${{ github.event.inputs.number_of_days }}"
           METRIC="${{ github.event.inputs.metric }}"
           OWNER="${{ github.repository_owner }}"
-          for REPO in $REPOS; do
+          IFS=' ' read -r -a REPO_ARRAY <<< "$REPOS"
+          for REPO in "${REPO_ARRAY[@]}"; do
             if [ -z "$REPO" ]; then
               echo "Skipping empty repository name"
               continue
