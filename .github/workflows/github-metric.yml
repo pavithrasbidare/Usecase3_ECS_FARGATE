@@ -54,42 +54,60 @@ jobs:
               continue
             fi
             SINCE=$(date -u -d "$NUMBER_OF_DAYS days ago" +"%Y-%m-%dT%H:%M:%SZ")
-            echo "📊 GitHub Metrics for $REPO" >> metrics_report.txt
+            echo "📊 GitHub Metrics for $REPO"
             
             if [ "$METRIC" = "commits" ]; then
-              echo "🔄 Fetching commit count..." >> metrics_report.txt
+              echo "🔄 Fetching commit count..."
               COMMIT_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
               "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE" | jq length)
-              echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT" >> metrics_report.txt
+              echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT"
               
-              echo "📋 Fetching commit details..." >> metrics_report.txt
+              echo "📋 Fetching commit details..."
               curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-              "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE&per_page=5" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' >> metrics_report.txt
+              "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE&per_page=5" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' | tee commit_details.json
+              cat commit_details.json
             elif [ "$METRIC" = "issues" ]; then
-              echo "📂 Fetching open issue count..." >> metrics_report.txt
+              echo "📂 Fetching open issue count..."
               ISSUE_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
               "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq length)
-              echo "- Open Issues: $ISSUE_COUNT" >> metrics_report.txt
+              echo "- Open Issues: $ISSUE_COUNT"
               
-              echo "📋 Fetching open issue details..." >> metrics_report.txt
+              echo "📋 Fetching open issue details..."
               curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-              "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' >> metrics_report.txt
+              "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' | tee issue_details.json
+              cat issue_details.json
             elif [ "$METRIC" = "prs" ]; then
-              echo "🔃 Fetching open pull request count..." >> metrics_report.txt
+              echo "🔃 Fetching open pull request count..."
               PR_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
               "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq length)
-              echo "- Open Pull Requests: $PR_COUNT" >> metrics_report.txt
+              echo "- Open Pull Requests: $PR_COUNT"
               
-              echo "📋 Fetching open pull request details..." >> metrics_report.txt
+              echo "📋 Fetching open pull request details..."
               curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-              "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' >> metrics_report.txt
+              "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' | tee pr_details.json
+              cat pr_details.json
             else
-              echo "Invalid metric selected. Please choose 'commits', 'issues', or 'prs'." >> metrics_report.txt
+              echo "Invalid metric selected. Please choose 'commits', 'issues', or 'prs'."
             fi
           done
 
-      - name: Upload metrics report
+      - name: Upload commit details
+        if: ${{ github.event.inputs.metric == 'commits' }}
         uses: actions/upload-artifact@v4
         with:
-          name: metrics-report
-          path: metrics_report.txt
+          name: commit-details
+          path: commit_details.json
+
+      - name: Upload issue details
+        if: ${{ github.event.inputs.metric == 'issues' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue-details
+          path: issue_details.json
+
+      - name: Upload pull request details
+        if: ${{ github.event.inputs.metric == 'prs' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: pr-details
+          path: pr_details.json
