@@ -38,9 +38,9 @@ jobs:
         id: fetch_repos
         run: |
           REPOS=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-          "https://api.github.com/orgs/${{ github.repository_owner }}/repos?per_page=100" | jq -r '.[].name')
+          "https://api.github.com/orgs/${{ github.repository_owner }}/repos?per_page=100" | jq -r 'map(.name) | join(" ")')
           echo "Fetched repositories: $REPOS"
-          echo "REPOS=$(echo $REPOS | tr '\n' ' ')" >> $GITHUB_ENV
+          echo "REPOS=$(echo $REPOS)" >> $GITHUB_ENV
 
       - name: Generate GitHub metrics report for all repos
         run: |
