@@ -24,7 +24,7 @@ permissions:
   actions: read
 
 jobs:
-  fetch_and_generate_metrics:
+  fetch_and_process_repos:
     runs-on: ubuntu-latest
 
     steps:
@@ -38,55 +38,58 @@ jobs:
         id: fetch_repos
         run: |
           REPOS=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-          "https://api.github.com/orgs/${{ github.repository_owner }}/repos?per_page=100" | jq -r '.[].name')
+          "https://api.github.com/user/repos?per_page=100" | jq -r '.[].name')
           echo "Fetched repositories: $REPOS"
           echo "REPOS=$(echo $REPOS | tr '\n' ' ')" >> $GITHUB_ENV
 
-      - name: Generate GitHub metrics report for all repos
+      - name: Generate GitHub metrics report
         run: |
           NUMBER_OF_DAYS="${{ github.event.inputs.number_of_days }}"
           METRIC="${{ github.event.inputs.metric }}"
           OWNER="${{ github.repository_owner }}"
           IFS=' ' read -r -a REPO_ARRAY <<< "$REPOS"
-          REPORT_FILE="metrics_report.txt"
-          echo "GitHub Metrics Report" > $REPORT_FILE
-          echo "=====================" >> $REPORT_FILE
           for REPO in "${REPO_ARRAY[@]}"; do
             if [ -z "$REPO" ]; then
               echo "Skipping empty repository name"
               continue
             fi
             SINCE=$(date -u -d "$NUMBER_OF_DAYS days ago" +"%Y-%m-%dT%H:%M:%SZ")
-            echo "📊 GitHub Metrics for $REPO" >> $REPORT_FILE
+            echo "📊 GitHub Metrics for $REPO" >> metrics_report.txt
             
             if [ "$METRIC" = "commits" ]; then
+              echo "🔄 Fetching commit count..." >> metrics_report.txt
               COMMIT_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
               "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE" | jq length)
-              echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT" >> $REPORT_FILE
+              echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT" >> metrics_report.txt
               
+              echo "📋 Fetching commit details..." >> metrics_report.txt
               curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-              "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE&per_page=5" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' >> $REPORT_FILE
+              "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE&per_page=5" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' >> metrics_report.txt
             elif [ "$METRIC" = "issues" ]; then
+              echo "📂 Fetching open issue count..." >> metrics_report.txt
               ISSUE_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
               "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq length)
-              echo "- Open Issues: $ISSUE_COUNT" >> $REPORT_FILE
+              echo "- Open Issues: $ISSUE_COUNT" >> metrics_report.txt
               
+              echo "📋 Fetching open issue details..." >> metrics_report.txt
               curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-              "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' >> $REPORT_FILE
+              "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' >> metrics_report.txt
             elif [ "$METRIC" = "prs" ]; then
+              echo "🔃 Fetching open pull request count..." >> metrics_report.txt
               PR_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
               "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq length)
-              echo "- Open Pull Requests: $PR_COUNT" >> $REPORT_FILE
+              echo "- Open Pull Requests: $PR_COUNT" >> metrics_report.txt
               
+              echo "📋 Fetching open pull request details..." >> metrics_report.txt
               curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-              "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' >> $REPORT_FILE
+              "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' >> metrics_report.txt
             else
-              echo "Invalid metric selected. Please choose 'commits', 'issues', or 'prs'." >> $REPORT_FILE
+              echo "Invalid metric selected. Please choose 'commits', 'issues', or 'prs'." >> metrics_report.txt
             fi
           done
 
       - name: Upload metrics report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v3
         with:
           name: metrics-report
           path: metrics_report.txt
