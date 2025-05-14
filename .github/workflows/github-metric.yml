@@ -68,9 +68,8 @@ jobs:
               if [ -z "$RESPONSE" ]; then
                 echo "No data fetched for $REPO"
               else
-                echo "$RESPONSE" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' | tee commit_details.json
+                echo "$RESPONSE" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' > commit_details.txt
               fi
-              cat commit_details.json
             elif [ "$METRIC" = "issues" ]; then
               echo "📂 Fetching open issue count..."
               ISSUE_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
@@ -83,9 +82,8 @@ jobs:
               if [ -z "$RESPONSE" ]; then
                 echo "No data fetched for $REPO"
               else
-                echo "$RESPONSE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' | tee issue_details.json
+                echo "$RESPONSE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' > issue_details.txt
               fi
-              cat issue_details.json
             elif [ "$METRIC" = "prs" ]; then
               echo "🔃 Fetching open pull request count..."
               PR_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
@@ -98,9 +96,8 @@ jobs:
               if [ -z "$RESPONSE" ]; then
                 echo "No data fetched for $REPO"
               else
-                echo "$RESPONSE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' | tee pr_details.json
+                echo "$RESPONSE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' > pr_details.txt
               fi
-              cat pr_details.json
             else
               echo "Invalid metric selected. Please choose 'commits', 'issues', or 'prs'."
             fi
@@ -111,18 +108,18 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: commit-details
-          path: commit_details.json
+          path: commit_details.txt
 
       - name: Upload issue details
         if: ${{ github.event.inputs.metric == 'issues' }}
         uses: actions/upload-artifact@v4
         with:
           name: issue-details
-          path: issue_details.json
+          path: issue_details.txt
 
       - name: Upload pull request details
         if: ${{ github.event.inputs.metric == 'prs' }}
         uses: actions/upload-artifact@v4
         with:
           name: pr-details
-          path: pr_details.json
+          path: pr_details.txt
