@@ -37,8 +37,10 @@ jobs:
       - name: Fetch all repositories
         id: fetch_repos
         run: |
-          REPOS=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-          "https://api.github.com/orgs/${{ github.repository_owner }}/repos?per_page=100" | jq -r '.[].name')
+          RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+          "https://api.github.com/orgs/${{ github.repository_owner }}/repos?per_page=100")
+          echo "$RESPONSE" > repos.json
+          REPOS=$(jq -r '.[].name' repos.json)
           echo "Fetched repositories: $REPOS"
           echo "REPOS=$(echo $REPOS | tr '\n' ' ')" >> $GITHUB_ENV
 
@@ -47,6 +49,7 @@ jobs:
           NUMBER_OF_DAYS="${{ github.event.inputs.number_of_days }}"
           METRIC="${{ github.event.inputs.metric }}"
           OWNER="${{ github.repository_owner }}"
+          REPOS=$(jq -r '.[].name' repos.json)
           IFS=' ' read -r -a REPO_ARRAY <<< "$REPOS"
           REPORT_FILE="metrics_report.txt"
           echo "GitHub Metrics Report" > $REPORT_FILE
