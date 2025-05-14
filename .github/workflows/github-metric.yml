@@ -38,66 +38,65 @@ jobs:
         id: fetch_repos
         run: |
           REPOS=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-          "https://api.github.com/user/repos?per_page=100" | jq -r '.[].name')
+            https://api.github.com/user/repos?per_page=100 | jq -r '.[].name' | xargs)
           echo "Fetched repositories: $REPOS"
-          echo "REPOS=$(echo $REPOS | tr '\n' ' ')" >> $GITHUB_ENV
+          echo "REPOS=$REPOS" >> "$GITHUB_ENV"
 
       - name: Generate GitHub metrics report
         run: |
           NUMBER_OF_DAYS="${{ github.event.inputs.number_of_days }}"
           METRIC="${{ github.event.inputs.metric }}"
           OWNER="${{ github.repository_owner }}"
+
           IFS=' ' read -r -a REPO_ARRAY <<< "$REPOS"
+
+          # Initialize output files
+          > commit_details.txt
+          > issue_details.txt
+          > pr_details.txt
+
           for REPO in "${REPO_ARRAY[@]}"; do
             if [ -z "$REPO" ]; then
               echo "Skipping empty repository name"
               continue
             fi
-            SINCE=$(date -u -d "$NUMBER_OF_DAYS days ago" +"%Y-%m-%dT%H:%M:%SZ")
+
             echo "📊 GitHub Metrics for $REPO"
-            
+            SINCE=$(date -u -d "$NUMBER_OF_DAYS days ago" +"%Y-%m-%dT%H:%M:%SZ")
+
             if [ "$METRIC" = "commits" ]; then
               echo "🔄 Fetching commit count..."
-              COMMIT_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-              "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE" | jq length)
+              COMMITS=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+                "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE")
+
+              COMMIT_COUNT=$(echo "$COMMITS" | jq 'if type=="array" then length else 0 end')
               echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT"
-              
+
               echo "📋 Fetching commit details..."
-              RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-              "https://api.github.com/repos/$OWNER/$REPO/commits?since=$SINCE&per_page=5")
-              if [ -z "$RESPONSE" ]; then
-                echo "No data fetched for $REPO"
-              else
-                echo "$RESPONSE" | jq '.[] | {author: .commit.author.name, message: .commit.message, date: .commit.author.date}' > commit_details.txt
-              fi
+              echo "$COMMITS" | jq -r '.[] | "\(.commit.author.name) | \(.commit.message | gsub("[\\r\\n]+"; " ")) | \(.commit.author.date)"' >> commit_details.txt
+
             elif [ "$METRIC" = "issues" ]; then
               echo "📂 Fetching open issue count..."
-              ISSUE_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-              "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE" | jq length)
+              ISSUES=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+                "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE")
+
+              ISSUE_COUNT=$(echo "$ISSUES" | jq 'if type=="array" then length else 0 end')
               echo "- Open Issues: $ISSUE_COUNT"
-              
+
               echo "📋 Fetching open issue details..."
-              RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-              "https://api.github.com/repos/$OWNER/$REPO/issues?state=open&since=$SINCE")
-              if [ -z "$RESPONSE" ]; then
-                echo "No data fetched for $REPO"
-              else
-                echo "$RESPONSE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' > issue_details.txt
-              fi
+              echo "$ISSUES" | jq -r '.[] | "\(.title) | \(.user.login) | \(.created_at)"' >> issue_details.txt
+
             elif [ "$METRIC" = "prs" ]; then
               echo "🔃 Fetching open pull request count..."
-              PR_COUNT=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-              "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE" | jq length)
+              PRS=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
+                "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE")
+
+              PR_COUNT=$(echo "$PRS" | jq 'if type=="array" then length else 0 end')
               echo "- Open Pull Requests: $PR_COUNT"
-              
+
               echo "📋 Fetching open pull request details..."
-              RESPONSE=$(curl -s -H "Authorization: token ${{ secrets.PAT_TOKEN }}" \
-              "https://api.github.com/repos/$OWNER/$REPO/pulls?state=open&since=$SINCE")
-              if [ -z "$RESPONSE" ]; then
-                echo "No data fetched for $REPO"
-              else
-                echo "$RESPONSE" | jq '.[] | {title: .title, user: .user.login, created_at: .created_at}' > pr_details.txt
-              fi
+              echo "$PRS" | jq -r '.[] | "\(.title) | \(.user.login) | \(.created_at)"' >> pr_details.txt
+
             else
               echo "Invalid metric selected. Please choose 'commits', 'issues', or 'prs'."
             fi
