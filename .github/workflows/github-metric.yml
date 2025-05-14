@@ -72,8 +72,12 @@ jobs:
               COMMIT_COUNT=$(echo "$COMMITS" | jq 'if type=="array" then length else 0 end')
               echo "- Commits in last $NUMBER_OF_DAYS days: $COMMIT_COUNT"
 
-              echo "📋 Fetching commit details..."
-              echo "$COMMITS" | jq -r '.[] | "\(.commit.author.name) | \(.commit.message | gsub("[\\r\\n]+"; " ")) | \(.commit.author.date)"' >> commit_details.txt
+              if [ "$COMMIT_COUNT" -gt 0 ]; then
+                echo "📋 Fetching commit details..."
+                echo "$COMMITS" | jq -r '.[] | "\(.commit.author.name) | \(.commit.message | gsub("[\\r\\n]+"; " ")) | \(.commit.author.date)"' >> commit_details.txt
+              else
+                echo "No commits found for $REPO." >> commit_details.txt
+              fi
 
             elif [ "$METRIC" = "issues" ]; then
               echo "📂 Fetching open issue count..."
@@ -83,8 +87,12 @@ jobs:
               ISSUE_COUNT=$(echo "$ISSUES" | jq 'if type=="array" then length else 0 end')
               echo "- Open Issues: $ISSUE_COUNT"
 
-              echo "📋 Fetching open issue details..."
-              echo "$ISSUES" | jq -r '.[] | "\(.title) | \(.user.login) | \(.created_at)"' >> issue_details.txt
+              if [ "$ISSUE_COUNT" -gt 0 ]; then
+                echo "📋 Fetching open issue details..."
+                echo "$ISSUES" | jq -r '.[] | "\(.title) | \(.user.login) | \(.created_at)"' >> issue_details.txt
+              else
+                echo "No open issues found for $REPO." >> issue_details.txt
+              fi
 
             elif [ "$METRIC" = "prs" ]; then
               echo "🔃 Fetching open pull request count..."
@@ -94,8 +102,12 @@ jobs:
               PR_COUNT=$(echo "$PRS" | jq 'if type=="array" then length else 0 end')
               echo "- Open Pull Requests: $PR_COUNT"
 
-              echo "📋 Fetching open pull request details..."
-              echo "$PRS" | jq -r '.[] | "\(.title) | \(.user.login) | \(.created_at)"' >> pr_details.txt
+              if [ "$PR_COUNT" -gt 0 ]; then
+                echo "📋 Fetching open pull request details..."
+                echo "$PRS" | jq -r '.[] | "\(.title) | \(.user.login) | \(.created_at)"' >> pr_details.txt
+              else
+                echo "No open pull requests found for $REPO." >> pr_details.txt
+              fi
 
             else
               echo "Invalid metric selected. Please choose 'commits', 'issues', or 'prs'."
