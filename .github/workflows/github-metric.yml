@@ -1,3 +1,28 @@
+name: GitHub Metrics for All Repos
+
+on:
+  workflow_dispatch:
+    inputs:
+      number_of_days:
+        description: 'Number of days to fetch data for (e.g., 30)'
+        required: true
+        default: '30'
+      metric:
+        description: 'Metric to display'
+        required: true
+        default: 'commits'
+        type: choice
+        options:
+          - commits
+          - issues
+          - prs
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  actions: read
+
 jobs:
   fetch_and_process_repos:
     runs-on: ubuntu-latest
